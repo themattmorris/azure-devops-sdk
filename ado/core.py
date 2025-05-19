@@ -97,7 +97,7 @@ class Endpoint(Api):
         list_response: ListResponse = self._call(HTTPMethod.GET, params=params)
         return list_response["value"]
 
-    def get(self, /, id: int) -> dict[str, Any]:
+    def get(self, id: int, /) -> dict[str, Any]:
         """Get an entity by id."""
         return self._call(HTTPMethod.GET, id)
 

@@ -34,7 +34,13 @@ class VariableGroupPermissions(Endpoint):
     path: ClassVar[str] = "variablegroup"
     api_version: ClassVar[str] = "7.1-preview.1"
 
-    def grant(self, /, variable_group_id: int, *, pipeline_ids: list[int]):  # type: ignore[no-untyped-def]
+    def grant(
+        self,
+        variable_group_id: int,
+        /,
+        *,
+        pipeline_ids: list[int],
+    ) -> VariableGroupPermissionResponse:
         """Grant pipelines permissions to a variable group."""
         # Get all the current permissions
         payload = {
@@ -58,7 +64,7 @@ class VariableGroupPermissions(Endpoint):
         }
         return self._call(HTTPMethod.PATCH, variable_group_id, payload=payload)
 
-    def get(self, /, variable_group_id: int) -> list[VariableGroupPermissionInfo]:
+    def get(self, variable_group_id: int, /) -> list[VariableGroupPermissionInfo]:
         """Get variable group permissions."""
         response: VariableGroupPermissionResponse = super().get(variable_group_id)  # type: ignore[assignment]
         return response["pipelines"]
