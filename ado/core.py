@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import datetime
-import json
 import os
 from http import HTTPMethod
 from typing import TYPE_CHECKING, Any, ClassVar, TypedDict, Unpack, get_type_hints
 
 import requests
+from dotenv import load_dotenv
+
+
+load_dotenv()
 
 
 if TYPE_CHECKING:
@@ -47,7 +50,7 @@ class _BaseClient:
 class Api(_BaseClient):
     """An Azure DevOps API."""
 
-    api_version: ClassVar[str] = "7.2-preview.1"
+    api_version: ClassVar[str] = "7.2-preview.3"
     path: ClassVar[str | None] = None
 
     def __init__(self, *parts: str, **kwargs: Unpack[ClientConfiguration]) -> None:  # noqa: D107
@@ -77,20 +80,28 @@ class Endpoint(Api):
         *url_parts: Any,
         params: dict[str, Any] | None = None,
         payload: Any | None = None,
+        headers: dict[str, Any] | None = None,
+        data: requests.sessions._Data | None = None,
     ) -> Any:
         response = requests.request(
             str(method),
-            "/".join([self.url, *[str(url_part) for url_part in url_parts]]),
+            (sep := "/").join(
+                [
+                    self.url.strip(sep),
+                    *[str(url_part).strip(sep) for url_part in url_parts],
+                ]
+            ),
             params={
                 k: v.isoformat() if isinstance(v, datetime.datetime) else v
                 for k, v in ((params or {}) | {"api-version": self.api_version}).items()
             },
             auth=("", os.environ["AZURE_DEVOPS_PAT"]),
-            headers={"Accept": "application/json"},
+            headers={"Accept": "application/json"} | (headers or {}),
             json=payload,
+            data=data,
             timeout=60,
         )
-        return json.loads(response.content)
+        return response.json()
 
     def list_all(self, **params: Any) -> list[dict[str, Any]]:
         """List all entities in endpoint."""
@@ -119,7 +130,8 @@ class endpoint(property):  # noqa: N801
                 organization=instance.organization,
                 project=instance.project,
             )
-        return super().__get__(instance, owner)
+
+        return super().__get__(instance, owner)  # type: ignore[return-value]
 
 
 api = endpoint

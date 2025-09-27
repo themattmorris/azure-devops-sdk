@@ -7,6 +7,7 @@ from .core import _BaseClient, api
 from .distributed_task import DistributedTask
 from .git import Git
 from .pipelines import Pipelines
+from .work_item_tracking import Wit
 
 
 class Client(_BaseClient):
@@ -27,3 +28,7 @@ class Client(_BaseClient):
     @api
     def build(self) -> Build:
         """Build API."""
+
+    @api
+    def wit(self) -> Wit:
+        """Work item tracking API."""
